@@ -2,8 +2,9 @@
 
 A lightweight, in-browser preprocessor designed to convert MP4 video clips into highly compressed alphanumeric data streams for real-time rendering in **Scratch 3.0** via the **Pen** extension.
  
-🔗 **Live Web Converter:** [https://tu-usuario.github.io/tu-repo/](https://tu-usuario.github.io/tu-repo/)  
-🕹️ **Scratch Project:** [Link to your Scratch project here]
+🔗 **Live Web Converter:** [Web Converter](https://eze-as.github.io/scratch-video-converter/)
+
+🕹️ **Scratch Project:** [Scratch Project](https://scratch.mit.edu/projects/1392167153/)
 
 ---
 
@@ -20,7 +21,7 @@ Playing video in Scratch usually requires uploading hundreds of individual costu
 
 ## 🚀 Quick Start
 
-1. Open the [Web Converter](https://tu-usuario.github.io/tu-repo/).
+1. Open the [Web Converter](https://eze-as.github.io/scratch-video-converter/)
 2. Select any `.mp4` video (short clips under 20 seconds are recommended).
 3. Click **Process Video (64 Colors + Delta)**.
 4. Click **Copy to Clipboard**.
