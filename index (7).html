@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scratch Video Converter Pro • High-Res Dynamic Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(16, 24, 39, 0.78);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-primary: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --accent-cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --surface-inner: rgba(15, 23, 42, 0.65);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg) 60%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 80px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 450px;
+      background: radial-gradient(ellipse, rgba(99, 102, 241, 0.2) 0%, rgba(6, 182, 212, 0.08) 50%, transparent 80%);
+      filter: blur(80px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    .top-bar {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-size: 12px;
+      font-weight: 600;
+      color: #a5b4fc;
+    }
+    .badge-tag span.dot {
+      width: 6px;
+      height: 6px;
+      background: #818cf8;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #818cf8;
+    }
+    .lang-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 9999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .lang-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+    }
+    header {
+      text-align: center;
+      max-width: 660px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .dropzone {
+      position: relative;
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.4);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 24px;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.08);
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+    .dropzone input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+    }
+    .dropzone-icon {
+      width: 52px; height: 52px;
+      margin: 0 auto 12px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: #818cf8;
+    }
+    .dropzone-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+    .dropzone-desc { font-size: 13px; color: var(--text-dim); }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+      background: var(--surface-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 20px;
+    }
+    @media (max-width: 768px) {
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+    .setting-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .setting-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .setting-title { color: var(--text-muted); }
+    .setting-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: #22d3ee;
+      background: rgba(6, 182, 212, 0.12);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 740px) {
+      .workspace-grid { grid-template-columns: 1fr; }
+    }
+    .preview-card {
+      background: var(--surface-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .canvas-wrapper {
+      width: 240px; height: 180px;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      display: flex; align-items: center; justify-content: center;
+    }
+    canvas {
+      image-rendering: pixelated;
+      width: 100%; height: 100%;
+      display: block;
+    }
+    .metrics-list {
+      width: 100%; margin-top: 14px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .metric-row {
+      display: flex; justify-content: space-between;
+      font-size: 12px; padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .metric-name { color: var(--text-dim); }
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #e2e8f0; }
+    .controls-panel { display: flex; flex-direction: column; gap: 16px; }
+    button.btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #4338ca 100%);
+      color: #fff; border: none; border-radius: 14px;
+      padding: 14px 22px; font-size: 15px; font-weight: 700;
+      cursor: pointer; display: inline-flex; align-items: center;
+      justify-content: center; gap: 10px;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      transition: all 0.2s ease;
+    }
+    button.btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+    button.btn-primary:disabled {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim);
+      box-shadow: none; cursor: not-allowed;
+    }
+    .progress-section {
+      display: none; flex-direction: column; gap: 8px;
+      background: var(--surface-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 14px; padding: 12px;
+    }
+    .progress-bar-bg {
+      width: 100%; height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      width: 0%; height: 100%;
+      background: linear-gradient(90deg, #6366f1, #06b6d4);
+      transition: width 0.15s ease;
+    }
+    .output-wrapper { display: flex; flex-direction: column; gap: 8px; }
+    .output-header { display: flex; justify-content: space-between; align-items: center; }
+    .output-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .btn-copy {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399; border-radius: 8px;
+      padding: 6px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-copy:hover { background: #10b981; color: #fff; }
+    textarea#output {
+      width: 100%; height: 130px;
+      background: rgba(10, 15, 29, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px; padding: 12px;
+      color: #cbd5e1; font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; resize: vertical; outline: none;
+    }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: rgba(16, 185, 129, 0.95);
+      backdrop-filter: blur(12px); color: #fff;
+      padding: 12px 20px; border-radius: 12px;
+      font-size: 13px; font-weight: 600;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 99;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    footer { margin-top: 36px; text-align: center; font-size: 13px; color: var(--text-dim); }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="badge-tag">
+      <span class="dot"></span>
+      <span id="badgeText">Adaptive Engine • High-Res Delta</span>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn" id="btnEn" onclick="setLanguage('en')">EN</button>
+      <button class="lang-btn" id="btnEs" onclick="setLanguage('es')">ES</button>
+    </div>
+  </div>
+
+  <header>
+    <h1 id="heroTitle">Scratch Video Converter Pro</h1>
+    <p class="subtitle" id="heroDesc">Convert videos with high-definition grid options up to 128×96, adaptive color depths, and variable framerates.</p>
+  </header>
+
+  <main class="container">
+    <div class="dropzone" id="dropArea">
+      <input type="file" id="videoInput" accept="video/mp4,video/webm,video/*">
+      <div class="dropzone-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+      </div>
+      <div class="dropzone-title" id="dropTitle">Choose a video or drag it here</div>
+      <div class="dropzone-desc" id="dropDesc">Supports MP4, WebM (Recommended: 5 to 25 seconds)</div>
+    </div>
+
+    <!-- Panel de Sliders Dinámicos -->
+    <div class="settings-grid">
+      <!-- Slider 1: Resolución con opciones HD -->
+      <div class="setting-item">
+        <div class="setting-header">
+          <span class="setting-title" id="lblSetRes">Resolution</span>
+          <span class="setting-val" id="valResLabel">64 &times; 48</span>
+        </div>
+        <input type="range" id="sliderRes" min="0" max="5" value="2" step="1">
+      </div>
+
+      <!-- Slider 2: Colores -->
+      <div class="setting-item">
+        <div class="setting-header">
+          <span class="setting-title" id="lblSetCol">Palette Colors</span>
+          <span class="setting-val" id="valColLabel">512 Colors (Hi-Color 9-Bit)</span>
+        </div>
+        <input type="range" id="sliderCol" min="0" max="5" value="5" step="1">
+      </div>
+
+      <!-- Slider 3: FPS -->
+      <div class="setting-item">
+        <div class="setting-header">
+          <span class="setting-title" id="lblSetFps">Target FPS</span>
+          <span class="setting-val" id="valFpsLabel">12 FPS</span>
+        </div>
+        <input type="range" id="sliderFps" min="8" max="20" value="12" step="1">
+      </div>
+    </div>
+
+    <div class="workspace-grid">
+      <div class="preview-card">
+        <div class="canvas-wrapper">
+          <canvas id="c" width="64" height="48"></canvas>
+        </div>
+        <div class="metrics-list">
+          <div class="metric-row">
+            <span class="metric-name" id="lblFrames">Total Frames</span>
+            <span class="metric-value" id="valFrames">0</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name" id="lblFps">Framerate</span>
+            <span class="metric-value" id="valFpsMetric">12 FPS</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name" id="lblLength">Payload Size</span>
+            <span class="metric-value" id="valSize">0 KB</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-panel">
+        <button class="btn-primary" id="processBtn" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="btnProcessText">Process Video</span>
+        </button>
+
+        <div class="progress-section" id="progressBox">
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
+            <span id="progressStatus" style="color: #38bdf8;">Extracting frames...</span>
+            <span id="progressPercent" style="color: #cbd5e1; font-family: monospace;">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <div class="output-wrapper">
+          <div class="output-header">
+            <span class="output-label" id="outputLabelText">Scratch Dynamic Payload</span>
+            <button class="btn-copy" id="copyBtn" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="copyBtnText">Copy Code</span>
+            </button>
+          </div>
+          <textarea id="output" placeholder="The adaptive payload will appear here..." readonly></textarea>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <video id="v" style="display:none;" muted playsinline></video>
+
+  <div class="toast" id="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastMsg">Code copied to clipboard!</span>
+  </div>
+
+  <footer>
+    <p id="footerText">Compatible with Scratch 3.0 Pen Extension • Auto-scaling matrix engine</p>
+  </footer>
+
+  <script>
+    const i18n = {
+      en: {
+        badge: "Adaptive Engine • High-Res Delta",
+        heroTitle: "Scratch Video Converter Pro",
+        heroDesc: "Convert videos with high-definition grid options up to 128×96, adaptive color depths, and variable framerates.",
+        dropTitle: "Choose a video or drag it here",
+        dropDesc: "Supports MP4, WebM (Recommended: 5 to 25 seconds)",
+        lblSetRes: "Resolution",
+        lblSetCol: "Palette Colors",
+        lblSetFps: "Target FPS",
+        lblFrames: "Total Frames",
+        lblFps: "Framerate",
+        lblLength: "Payload Size",
+        btnProcess: "Process Video",
+        btnProcessing: "Processing frames...",
+        outputLabel: "Scratch Dynamic Payload",
+        copyBtn: "Copy Code",
+        toastCopied: "Code copied to clipboard! Paste it into Scratch.",
+        footer: "Compatible with Scratch 3.0 Pen Extension • Auto-scaling matrix engine",
+        statusSeek: "Processing frame {cur} of {tot}...",
+        statusComplete: "Complete! Ready to copy to Scratch."
+      },
+      es: {
+        badge: "Motor Adaptativo • Delta Alta Definición",
+        heroTitle: "Conversor de Video Scratch Pro",
+        heroDesc: "Convierte videos con opciones de alta resolución hasta 128×96, paleta adaptable y FPS ajustables.",
+        dropTitle: "Selecciona un video o arrástralo aquí",
+        dropDesc: "Compatible con MP4, WebM (Recomendado: 5 a 25 segundos)",
+        lblSetRes: "Resolución",
+        lblSetCol: "Colores de Paleta",
+        lblSetFps: "Velocidad FPS",
+        lblFrames: "Cuadros Totales",
+        lblFps: "Velocidad",
+        lblLength: "Tamaño Código",
+        btnProcess: "Procesar Video",
+        btnProcessing: "Procesando fotogramas...",
+        outputLabel: "Código Adaptativo para Scratch",
+        copyBtn: "Copiar Código",
+        toastCopied: "¡Código copiado al portapapeles! Pégalo en Scratch.",
+        footer: "Compatible con Extensión Lápiz de Scratch 3.0 • Matriz con auto-escalado",
+        statusSeek: "Procesando cuadro {cur} de {tot}...",
+        statusComplete: "¡Completado! Listo para copiar a Scratch."
+      }
+    };
+
+    let curLang = 'es';
+
+    function setLanguage(lang) {
+      curLang = lang;
+      document.documentElement.lang = lang;
+      const t = i18n[lang];
+
+      document.getElementById('badgeText').textContent = t.badge;
+      document.getElementById('heroTitle').textContent = t.heroTitle;
+      document.getElementById('heroDesc').textContent = t.heroDesc;
+      document.getElementById('dropTitle').textContent = t.dropTitle;
+      document.getElementById('dropDesc').textContent = t.dropDesc;
+      document.getElementById('lblSetRes').textContent = t.lblSetRes;
+      document.getElementById('lblSetCol').textContent = t.lblSetCol;
+      document.getElementById('lblSetFps').textContent = t.lblSetFps;
+      document.getElementById('lblFrames').textContent = t.lblFrames;
+      document.getElementById('lblFps').textContent = t.lblFps;
+      document.getElementById('lblLength').textContent = t.lblLength;
+      document.getElementById('btnProcessText').textContent = t.btnProcess;
+      document.getElementById('outputLabelText').textContent = t.outputLabel;
+      document.getElementById('copyBtnText').textContent = t.copyBtn;
+      document.getElementById('toastMsg').textContent = t.toastCopied;
+      document.getElementById('footerText').textContent = t.footer;
+
+      document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+      document.getElementById('btnEs').classList.toggle('active', lang === 'es');
+    }
+
+    const userBrowserLang = (navigator.language || navigator.userLanguage || 'es').toLowerCase();
+    setLanguage(userBrowserLang.startsWith('es') ? 'es' : 'en');
+
+    const FULL_PALETTE = [{"id": "AA", "hex": "#000000", "r": 0, "g": 0, "b": 0}, {"id": "AB", "hex": "#000024", "r": 0, "g": 0, "b": 36}, {"id": "AC", "hex": "#000049", "r": 0, "g": 0, "b": 73}, {"id": "AD", "hex": "#00006d", "r": 0, "g": 0, "b": 109}, {"id": "AE", "hex": "#000092", "r": 0, "g": 0, "b": 146}, {"id": "AF", "hex": "#0000b6", "r": 0, "g": 0, "b": 182}, {"id": "AG", "hex": "#0000db", "r": 0, "g": 0, "b": 219}, {"id": "AH", "hex": "#0000ff", "r": 0, "g": 0, "b": 255}, {"id": "AI", "hex": "#002400", "r": 0, "g": 36, "b": 0}, {"id": "AJ", "hex": "#002424", "r": 0, "g": 36, "b": 36}, {"id": "AK", "hex": "#002449", "r": 0, "g": 36, "b": 73}, {"id": "AL", "hex": "#00246d", "r": 0, "g": 36, "b": 109}, {"id": "AM", "hex": "#002492", "r": 0, "g": 36, "b": 146}, {"id": "AN", "hex": "#0024b6", "r": 0, "g": 36, "b": 182}, {"id": "AO", "hex": "#0024db", "r": 0, "g": 36, "b": 219}, {"id": "AP", "hex": "#0024ff", "r": 0, "g": 36, "b": 255}, {"id": "AQ", "hex": "#004900", "r": 0, "g": 73, "b": 0}, {"id": "AR", "hex": "#004924", "r": 0, "g": 73, "b": 36}, {"id": "AS", "hex": "#004949", "r": 0, "g": 73, "b": 73}, {"id": "AT", "hex": "#00496d", "r": 0, "g": 73, "b": 109}, {"id": "AU", "hex": "#004992", "r": 0, "g": 73, "b": 146}, {"id": "AV", "hex": "#0049b6", "r": 0, "g": 73, "b": 182}, {"id": "AW", "hex": "#0049db", "r": 0, "g": 73, "b": 219}, {"id": "AX", "hex": "#0049ff", "r": 0, "g": 73, "b": 255}, {"id": "AY", "hex": "#006d00", "r": 0, "g": 109, "b": 0}, {"id": "AZ", "hex": "#006d24", "r": 0, "g": 109, "b": 36}, {"id": "BA", "hex": "#006d49", "r": 0, "g": 109, "b": 73}, {"id": "BB", "hex": "#006d6d", "r": 0, "g": 109, "b": 109}, {"id": "BC", "hex": "#006d92", "r": 0, "g": 109, "b": 146}, {"id": "BD", "hex": "#006db6", "r": 0, "g": 109, "b": 182}, {"id": "BE", "hex": "#006ddb", "r": 0, "g": 109, "b": 219}, {"id": "BF", "hex": "#006dff", "r": 0, "g": 109, "b": 255}, {"id": "BG", "hex": "#009200", "r": 0, "g": 146, "b": 0}, {"id": "BH", "hex": "#009224", "r": 0, "g": 146, "b": 36}, {"id": "BI", "hex": "#009249", "r": 0, "g": 146, "b": 73}, {"id": "BJ", "hex": "#00926d", "r": 0, "g": 146, "b": 109}, {"id": "BK", "hex": "#009292", "r": 0, "g": 146, "b": 146}, {"id": "BL", "hex": "#0092b6", "r": 0, "g": 146, "b": 182}, {"id": "BM", "hex": "#0092db", "r": 0, "g": 146, "b": 219}, {"id": "BN", "hex": "#0092ff", "r": 0, "g": 146, "b": 255}, {"id": "BO", "hex": "#00b600", "r": 0, "g": 182, "b": 0}, {"id": "BP", "hex": "#00b624", "r": 0, "g": 182, "b": 36}, {"id": "BQ", "hex": "#00b649", "r": 0, "g": 182, "b": 73}, {"id": "BR", "hex": "#00b66d", "r": 0, "g": 182, "b": 109}, {"id": "BS", "hex": "#00b692", "r": 0, "g": 182, "b": 146}, {"id": "BT", "hex": "#00b6b6", "r": 0, "g": 182, "b": 182}, {"id": "BU", "hex": "#00b6db", "r": 0, "g": 182, "b": 219}, {"id": "BV", "hex": "#00b6ff", "r": 0, "g": 182, "b": 255}, {"id": "BW", "hex": "#00db00", "r": 0, "g": 219, "b": 0}, {"id": "BX", "hex": "#00db24", "r": 0, "g": 219, "b": 36}, {"id": "BY", "hex": "#00db49", "r": 0, "g": 219, "b": 73}, {"id": "BZ", "hex": "#00db6d", "r": 0, "g": 219, "b": 109}, {"id": "CA", "hex": "#00db92", "r": 0, "g": 219, "b": 146}, {"id": "CB", "hex": "#00dbb6", "r": 0, "g": 219, "b": 182}, {"id": "CC", "hex": "#00dbdb", "r": 0, "g": 219, "b": 219}, {"id": "CD", "hex": "#00dbff", "r": 0, "g": 219, "b": 255}, {"id": "CE", "hex": "#00ff00", "r": 0, "g": 255, "b": 0}, {"id": "CF", "hex": "#00ff24", "r": 0, "g": 255, "b": 36}, {"id": "CG", "hex": "#00ff49", "r": 0, "g": 255, "b": 73}, {"id": "CH", "hex": "#00ff6d", "r": 0, "g": 255, "b": 109}, {"id": "CI", "hex": "#00ff92", "r": 0, "g": 255, "b": 146}, {"id": "CJ", "hex": "#00ffb6", "r": 0, "g": 255, "b": 182}, {"id": "CK", "hex": "#00ffdb", "r": 0, "g": 255, "b": 219}, {"id": "CL", "hex": "#00ffff", "r": 0, "g": 255, "b": 255}, {"id": "CM", "hex": "#240000", "r": 36, "g": 0, "b": 0}, {"id": "CN", "hex": "#240024", "r": 36, "g": 0, "b": 36}, {"id": "CO", "hex": "#240049", "r": 36, "g": 0, "b": 73}, {"id": "CP", "hex": "#24006d", "r": 36, "g": 0, "b": 109}, {"id": "CQ", "hex": "#240092", "r": 36, "g": 0, "b": 146}, {"id": "CR", "hex": "#2400b6", "r": 36, "g": 0, "b": 182}, {"id": "CS", "hex": "#2400db", "r": 36, "g": 0, "b": 219}, {"id": "CT", "hex": "#2400ff", "r": 36, "g": 0, "b": 255}, {"id": "CU", "hex": "#242400", "r": 36, "g": 36, "b": 0}, {"id": "CV", "hex": "#242424", "r": 36, "g": 36, "b": 36}, {"id": "CW", "hex": "#242449", "r": 36, "g": 36, "b": 73}, {"id": "CX", "hex": "#24246d", "r": 36, "g": 36, "b": 109}, {"id": "CY", "hex": "#242492", "r": 36, "g": 36, "b": 146}, {"id": "CZ", "hex": "#2424b6", "r": 36, "g": 36, "b": 182}, {"id": "DA", "hex": "#2424db", "r": 36, "g": 36, "b": 219}, {"id": "DB", "hex": "#2424ff", "r": 36, "g": 36, "b": 255}, {"id": "DC", "hex": "#244900", "r": 36, "g": 73, "b": 0}, {"id": "DD", "hex": "#244924", "r": 36, "g": 73, "b": 36}, {"id": "DE", "hex": "#244949", "r": 36, "g": 73, "b": 73}, {"id": "DF", "hex": "#24496d", "r": 36, "g": 73, "b": 109}, {"id": "DG", "hex": "#244992", "r": 36, "g": 73, "b": 146}, {"id": "DH", "hex": "#2449b6", "r": 36, "g": 73, "b": 182}, {"id": "DI", "hex": "#2449db", "r": 36, "g": 73, "b": 219}, {"id": "DJ", "hex": "#2449ff", "r": 36, "g": 73, "b": 255}, {"id": "DK", "hex": "#246d00", "r": 36, "g": 109, "b": 0}, {"id": "DL", "hex": "#246d24", "r": 36, "g": 109, "b": 36}, {"id": "DM", "hex": "#246d49", "r": 36, "g": 109, "b": 73}, {"id": "DN", "hex": "#246d6d", "r": 36, "g": 109, "b": 109}, {"id": "DO", "hex": "#246d92", "r": 36, "g": 109, "b": 146}, {"id": "DP", "hex": "#246db6", "r": 36, "g": 109, "b": 182}, {"id": "DQ", "hex": "#246ddb", "r": 36, "g": 109, "b": 219}, {"id": "DR", "hex": "#246dff", "r": 36, "g": 109, "b": 255}, {"id": "DS", "hex": "#249200", "r": 36, "g": 146, "b": 0}, {"id": "DT", "hex": "#249224", "r": 36, "g": 146, "b": 36}, {"id": "DU", "hex": "#249249", "r": 36, "g": 146, "b": 73}, {"id": "DV", "hex": "#24926d", "r": 36, "g": 146, "b": 109}, {"id": "DW", "hex": "#249292", "r": 36, "g": 146, "b": 146}, {"id": "DX", "hex": "#2492b6", "r": 36, "g": 146, "b": 182}, {"id": "DY", "hex": "#2492db", "r": 36, "g": 146, "b": 219}, {"id": "DZ", "hex": "#2492ff", "r": 36, "g": 146, "b": 255}, {"id": "EA", "hex": "#24b600", "r": 36, "g": 182, "b": 0}, {"id": "EB", "hex": "#24b624", "r": 36, "g": 182, "b": 36}, {"id": "EC", "hex": "#24b649", "r": 36, "g": 182, "b": 73}, {"id": "ED", "hex": "#24b66d", "r": 36, "g": 182, "b": 109}, {"id": "EE", "hex": "#24b692", "r": 36, "g": 182, "b": 146}, {"id": "EF", "hex": "#24b6b6", "r": 36, "g": 182, "b": 182}, {"id": "EG", "hex": "#24b6db", "r": 36, "g": 182, "b": 219}, {"id": "EH", "hex": "#24b6ff", "r": 36, "g": 182, "b": 255}, {"id": "EI", "hex": "#24db00", "r": 36, "g": 219, "b": 0}, {"id": "EJ", "hex": "#24db24", "r": 36, "g": 219, "b": 36}, {"id": "EK", "hex": "#24db49", "r": 36, "g": 219, "b": 73}, {"id": "EL", "hex": "#24db6d", "r": 36, "g": 219, "b": 109}, {"id": "EM", "hex": "#24db92", "r": 36, "g": 219, "b": 146}, {"id": "EN", "hex": "#24dbb6", "r": 36, "g": 219, "b": 182}, {"id": "EO", "hex": "#24dbdb", "r": 36, "g": 219, "b": 219}, {"id": "EP", "hex": "#24dbff", "r": 36, "g": 219, "b": 255}, {"id": "EQ", "hex": "#24ff00", "r": 36, "g": 255, "b": 0}, {"id": "ER", "hex": "#24ff24", "r": 36, "g": 255, "b": 36}, {"id": "ES", "hex": "#24ff49", "r": 36, "g": 255, "b": 73}, {"id": "ET", "hex": "#24ff6d", "r": 36, "g": 255, "b": 109}, {"id": "EU", "hex": "#24ff92", "r": 36, "g": 255, "b": 146}, {"id": "EV", "hex": "#24ffb6", "r": 36, "g": 255, "b": 182}, {"id": "EW", "hex": "#24ffdb", "r": 36, "g": 255, "b": 219}, {"id": "EX", "hex": "#24ffff", "r": 36, "g": 255, "b": 255}, {"id": "EY", "hex": "#490000", "r": 73, "g": 0, "b": 0}, {"id": "EZ", "hex": "#490024", "r": 73, "g": 0, "b": 36}, {"id": "FA", "hex": "#490049", "r": 73, "g": 0, "b": 73}, {"id": "FB", "hex": "#49006d", "r": 73, "g": 0, "b": 109}, {"id": "FC", "hex": "#490092", "r": 73, "g": 0, "b": 146}, {"id": "FD", "hex": "#4900b6", "r": 73, "g": 0, "b": 182}, {"id": "FE", "hex": "#4900db", "r": 73, "g": 0, "b": 219}, {"id": "FF", "hex": "#4900ff", "r": 73, "g": 0, "b": 255}, {"id": "FG", "hex": "#492400", "r": 73, "g": 36, "b": 0}, {"id": "FH", "hex": "#492424", "r": 73, "g": 36, "b": 36}, {"id": "FI", "hex": "#492449", "r": 73, "g": 36, "b": 73}, {"id": "FJ", "hex": "#49246d", "r": 73, "g": 36, "b": 109}, {"id": "FK", "hex": "#492492", "r": 73, "g": 36, "b": 146}, {"id": "FL", "hex": "#4924b6", "r": 73, "g": 36, "b": 182}, {"id": "FM", "hex": "#4924db", "r": 73, "g": 36, "b": 219}, {"id": "FN", "hex": "#4924ff", "r": 73, "g": 36, "b": 255}, {"id": "FO", "hex": "#494900", "r": 73, "g": 73, "b": 0}, {"id": "FP", "hex": "#494924", "r": 73, "g": 73, "b": 36}, {"id": "FQ", "hex": "#494949", "r": 73, "g": 73, "b": 73}, {"id": "FR", "hex": "#49496d", "r": 73, "g": 73, "b": 109}, {"id": "FS", "hex": "#494992", "r": 73, "g": 73, "b": 146}, {"id": "FT", "hex": "#4949b6", "r": 73, "g": 73, "b": 182}, {"id": "FU", "hex": "#4949db", "r": 73, "g": 73, "b": 219}, {"id": "FV", "hex": "#4949ff", "r": 73, "g": 73, "b": 255}, {"id": "FW", "hex": "#496d00", "r": 73, "g": 109, "b": 0}, {"id": "FX", "hex": "#496d24", "r": 73, "g": 109, "b": 36}, {"id": "FY", "hex": "#496d49", "r": 73, "g": 109, "b": 73}, {"id": "FZ", "hex": "#496d6d", "r": 73, "g": 109, "b": 109}, {"id": "GA", "hex": "#496d92", "r": 73, "g": 109, "b": 146}, {"id": "GB", "hex": "#496db6", "r": 73, "g": 109, "b": 182}, {"id": "GC", "hex": "#496ddb", "r": 73, "g": 109, "b": 219}, {"id": "GD", "hex": "#496dff", "r": 73, "g": 109, "b": 255}, {"id": "GE", "hex": "#499200", "r": 73, "g": 146, "b": 0}, {"id": "GF", "hex": "#499224", "r": 73, "g": 146, "b": 36}, {"id": "GG", "hex": "#499249", "r": 73, "g": 146, "b": 73}, {"id": "GH", "hex": "#49926d", "r": 73, "g": 146, "b": 109}, {"id": "GI", "hex": "#499292", "r": 73, "g": 146, "b": 146}, {"id": "GJ", "hex": "#4992b6", "r": 73, "g": 146, "b": 182}, {"id": "GK", "hex": "#4992db", "r": 73, "g": 146, "b": 219}, {"id": "GL", "hex": "#4992ff", "r": 73, "g": 146, "b": 255}, {"id": "GM", "hex": "#49b600", "r": 73, "g": 182, "b": 0}, {"id": "GN", "hex": "#49b624", "r": 73, "g": 182, "b": 36}, {"id": "GO", "hex": "#49b649", "r": 73, "g": 182, "b": 73}, {"id": "GP", "hex": "#49b66d", "r": 73, "g": 182, "b": 109}, {"id": "GQ", "hex": "#49b692", "r": 73, "g": 182, "b": 146}, {"id": "GR", "hex": "#49b6b6", "r": 73, "g": 182, "b": 182}, {"id": "GS", "hex": "#49b6db", "r": 73, "g": 182, "b": 219}, {"id": "GT", "hex": "#49b6ff", "r": 73, "g": 182, "b": 255}, {"id": "GU", "hex": "#49db00", "r": 73, "g": 219, "b": 0}, {"id": "GV", "hex": "#49db24", "r": 73, "g": 219, "b": 36}, {"id": "GW", "hex": "#49db49", "r": 73, "g": 219, "b": 73}, {"id": "GX", "hex": "#49db6d", "r": 73, "g": 219, "b": 109}, {"id": "GY", "hex": "#49db92", "r": 73, "g": 219, "b": 146}, {"id": "GZ", "hex": "#49dbb6", "r": 73, "g": 219, "b": 182}, {"id": "HA", "hex": "#49dbdb", "r": 73, "g": 219, "b": 219}, {"id": "HB", "hex": "#49dbff", "r": 73, "g": 219, "b": 255}, {"id": "HC", "hex": "#49ff00", "r": 73, "g": 255, "b": 0}, {"id": "HD", "hex": "#49ff24", "r": 73, "g": 255, "b": 36}, {"id": "HE", "hex": "#49ff49", "r": 73, "g": 255, "b": 73}, {"id": "HF", "hex": "#49ff6d", "r": 73, "g": 255, "b": 109}, {"id": "HG", "hex": "#49ff92", "r": 73, "g": 255, "b": 146}, {"id": "HH", "hex": "#49ffb6", "r": 73, "g": 255, "b": 182}, {"id": "HI", "hex": "#49ffdb", "r": 73, "g": 255, "b": 219}, {"id": "HJ", "hex": "#49ffff", "r": 73, "g": 255, "b": 255}, {"id": "HK", "hex": "#6d0000", "r": 109, "g": 0, "b": 0}, {"id": "HL", "hex": "#6d0024", "r": 109, "g": 0, "b": 36}, {"id": "HM", "hex": "#6d0049", "r": 109, "g": 0, "b": 73}, {"id": "HN", "hex": "#6d006d", "r": 109, "g": 0, "b": 109}, {"id": "HO", "hex": "#6d0092", "r": 109, "g": 0, "b": 146}, {"id": "HP", "hex": "#6d00b6", "r": 109, "g": 0, "b": 182}, {"id": "HQ", "hex": "#6d00db", "r": 109, "g": 0, "b": 219}, {"id": "HR", "hex": "#6d00ff", "r": 109, "g": 0, "b": 255}, {"id": "HS", "hex": "#6d2400", "r": 109, "g": 36, "b": 0}, {"id": "HT", "hex": "#6d2424", "r": 109, "g": 36, "b": 36}, {"id": "HU", "hex": "#6d2449", "r": 109, "g": 36, "b": 73}, {"id": "HV", "hex": "#6d246d", "r": 109, "g": 36, "b": 109}, {"id": "HW", "hex": "#6d2492", "r": 109, "g": 36, "b": 146}, {"id": "HX", "hex": "#6d24b6", "r": 109, "g": 36, "b": 182}, {"id": "HY", "hex": "#6d24db", "r": 109, "g": 36, "b": 219}, {"id": "HZ", "hex": "#6d24ff", "r": 109, "g": 36, "b": 255}, {"id": "IA", "hex": "#6d4900", "r": 109, "g": 73, "b": 0}, {"id": "IB", "hex": "#6d4924", "r": 109, "g": 73, "b": 36}, {"id": "IC", "hex": "#6d4949", "r": 109, "g": 73, "b": 73}, {"id": "ID", "hex": "#6d496d", "r": 109, "g": 73, "b": 109}, {"id": "IE", "hex": "#6d4992", "r": 109, "g": 73, "b": 146}, {"id": "IF", "hex": "#6d49b6", "r": 109, "g": 73, "b": 182}, {"id": "IG", "hex": "#6d49db", "r": 109, "g": 73, "b": 219}, {"id": "IH", "hex": "#6d49ff", "r": 109, "g": 73, "b": 255}, {"id": "II", "hex": "#6d6d00", "r": 109, "g": 109, "b": 0}, {"id": "IJ", "hex": "#6d6d24", "r": 109, "g": 109, "b": 36}, {"id": "IK", "hex": "#6d6d49", "r": 109, "g": 109, "b": 73}, {"id": "IL", "hex": "#6d6d6d", "r": 109, "g": 109, "b": 109}, {"id": "IM", "hex": "#6d6d92", "r": 109, "g": 109, "b": 146}, {"id": "IN", "hex": "#6d6db6", "r": 109, "g": 109, "b": 182}, {"id": "IO", "hex": "#6d6ddb", "r": 109, "g": 109, "b": 219}, {"id": "IP", "hex": "#6d6dff", "r": 109, "g": 109, "b": 255}, {"id": "IQ", "hex": "#6d9200", "r": 109, "g": 146, "b": 0}, {"id": "IR", "hex": "#6d9224", "r": 109, "g": 146, "b": 36}, {"id": "IS", "hex": "#6d9249", "r": 109, "g": 146, "b": 73}, {"id": "IT", "hex": "#6d926d", "r": 109, "g": 146, "b": 109}, {"id": "IU", "hex": "#6d9292", "r": 109, "g": 146, "b": 146}, {"id": "IV", "hex": "#6d92b6", "r": 109, "g": 146, "b": 182}, {"id": "IW", "hex": "#6d92db", "r": 109, "g": 146, "b": 219}, {"id": "IX", "hex": "#6d92ff", "r": 109, "g": 146, "b": 255}, {"id": "IY", "hex": "#6db600", "r": 109, "g": 182, "b": 0}, {"id": "IZ", "hex": "#6db624", "r": 109, "g": 182, "b": 36}, {"id": "JA", "hex": "#6db649", "r": 109, "g": 182, "b": 73}, {"id": "JB", "hex": "#6db66d", "r": 109, "g": 182, "b": 109}, {"id": "JC", "hex": "#6db692", "r": 109, "g": 182, "b": 146}, {"id": "JD", "hex": "#6db6b6", "r": 109, "g": 182, "b": 182}, {"id": "JE", "hex": "#6db6db", "r": 109, "g": 182, "b": 219}, {"id": "JF", "hex": "#6db6ff", "r": 109, "g": 182, "b": 255}, {"id": "JG", "hex": "#6ddb00", "r": 109, "g": 219, "b": 0}, {"id": "JH", "hex": "#6ddb24", "r": 109, "g": 219, "b": 36}, {"id": "JI", "hex": "#6ddb49", "r": 109, "g": 219, "b": 73}, {"id": "JJ", "hex": "#6ddb6d", "r": 109, "g": 219, "b": 109}, {"id": "JK", "hex": "#6ddb92", "r": 109, "g": 219, "b": 146}, {"id": "JL", "hex": "#6ddbb6", "r": 109, "g": 219, "b": 182}, {"id": "JM", "hex": "#6ddbdb", "r": 109, "g": 219, "b": 219}, {"id": "JN", "hex": "#6ddbff", "r": 109, "g": 219, "b": 255}, {"id": "JO", "hex": "#6dff00", "r": 109, "g": 255, "b": 0}, {"id": "JP", "hex": "#6dff24", "r": 109, "g": 255, "b": 36}, {"id": "JQ", "hex": "#6dff49", "r": 109, "g": 255, "b": 73}, {"id": "JR", "hex": "#6dff6d", "r": 109, "g": 255, "b": 109}, {"id": "JS", "hex": "#6dff92", "r": 109, "g": 255, "b": 146}, {"id": "JT", "hex": "#6dffb6", "r": 109, "g": 255, "b": 182}, {"id": "JU", "hex": "#6dffdb", "r": 109, "g": 255, "b": 219}, {"id": "JV", "hex": "#6dffff", "r": 109, "g": 255, "b": 255}, {"id": "JW", "hex": "#920000", "r": 146, "g": 0, "b": 0}, {"id": "JX", "hex": "#920024", "r": 146, "g": 0, "b": 36}, {"id": "JY", "hex": "#920049", "r": 146, "g": 0, "b": 73}, {"id": "JZ", "hex": "#92006d", "r": 146, "g": 0, "b": 109}, {"id": "KA", "hex": "#920092", "r": 146, "g": 0, "b": 146}, {"id": "KB", "hex": "#9200b6", "r": 146, "g": 0, "b": 182}, {"id": "KC", "hex": "#9200db", "r": 146, "g": 0, "b": 219}, {"id": "KD", "hex": "#9200ff", "r": 146, "g": 0, "b": 255}, {"id": "KE", "hex": "#922400", "r": 146, "g": 36, "b": 0}, {"id": "KF", "hex": "#922424", "r": 146, "g": 36, "b": 36}, {"id": "KG", "hex": "#922449", "r": 146, "g": 36, "b": 73}, {"id": "KH", "hex": "#92246d", "r": 146, "g": 36, "b": 109}, {"id": "KI", "hex": "#922492", "r": 146, "g": 36, "b": 146}, {"id": "KJ", "hex": "#9224b6", "r": 146, "g": 36, "b": 182}, {"id": "KK", "hex": "#9224db", "r": 146, "g": 36, "b": 219}, {"id": "KL", "hex": "#9224ff", "r": 146, "g": 36, "b": 255}, {"id": "KM", "hex": "#924900", "r": 146, "g": 73, "b": 0}, {"id": "KN", "hex": "#924924", "r": 146, "g": 73, "b": 36}, {"id": "KO", "hex": "#924949", "r": 146, "g": 73, "b": 73}, {"id": "KP", "hex": "#92496d", "r": 146, "g": 73, "b": 109}, {"id": "KQ", "hex": "#924992", "r": 146, "g": 73, "b": 146}, {"id": "KR", "hex": "#9249b6", "r": 146, "g": 73, "b": 182}, {"id": "KS", "hex": "#9249db", "r": 146, "g": 73, "b": 219}, {"id": "KT", "hex": "#9249ff", "r": 146, "g": 73, "b": 255}, {"id": "KU", "hex": "#926d00", "r": 146, "g": 109, "b": 0}, {"id": "KV", "hex": "#926d24", "r": 146, "g": 109, "b": 36}, {"id": "KW", "hex": "#926d49", "r": 146, "g": 109, "b": 73}, {"id": "KX", "hex": "#926d6d", "r": 146, "g": 109, "b": 109}, {"id": "KY", "hex": "#926d92", "r": 146, "g": 109, "b": 146}, {"id": "KZ", "hex": "#926db6", "r": 146, "g": 109, "b": 182}, {"id": "LA", "hex": "#926ddb", "r": 146, "g": 109, "b": 219}, {"id": "LB", "hex": "#926dff", "r": 146, "g": 109, "b": 255}, {"id": "LC", "hex": "#929200", "r": 146, "g": 146, "b": 0}, {"id": "LD", "hex": "#929224", "r": 146, "g": 146, "b": 36}, {"id": "LE", "hex": "#929249", "r": 146, "g": 146, "b": 73}, {"id": "LF", "hex": "#92926d", "r": 146, "g": 146, "b": 109}, {"id": "LG", "hex": "#929292", "r": 146, "g": 146, "b": 146}, {"id": "LH", "hex": "#9292b6", "r": 146, "g": 146, "b": 182}, {"id": "LI", "hex": "#9292db", "r": 146, "g": 146, "b": 219}, {"id": "LJ", "hex": "#9292ff", "r": 146, "g": 146, "b": 255}, {"id": "LK", "hex": "#92b600", "r": 146, "g": 182, "b": 0}, {"id": "LL", "hex": "#92b624", "r": 146, "g": 182, "b": 36}, {"id": "LM", "hex": "#92b649", "r": 146, "g": 182, "b": 73}, {"id": "LN", "hex": "#92b66d", "r": 146, "g": 182, "b": 109}, {"id": "LO", "hex": "#92b692", "r": 146, "g": 182, "b": 146}, {"id": "LP", "hex": "#92b6b6", "r": 146, "g": 182, "b": 182}, {"id": "LQ", "hex": "#92b6db", "r": 146, "g": 182, "b": 219}, {"id": "LR", "hex": "#92b6ff", "r": 146, "g": 182, "b": 255}, {"id": "LS", "hex": "#92db00", "r": 146, "g": 219, "b": 0}, {"id": "LT", "hex": "#92db24", "r": 146, "g": 219, "b": 36}, {"id": "LU", "hex": "#92db49", "r": 146, "g": 219, "b": 73}, {"id": "LV", "hex": "#92db6d", "r": 146, "g": 219, "b": 109}, {"id": "LW", "hex": "#92db92", "r": 146, "g": 219, "b": 146}, {"id": "LX", "hex": "#92dbb6", "r": 146, "g": 219, "b": 182}, {"id": "LY", "hex": "#92dbdb", "r": 146, "g": 219, "b": 219}, {"id": "LZ", "hex": "#92dbff", "r": 146, "g": 219, "b": 255}, {"id": "MA", "hex": "#92ff00", "r": 146, "g": 255, "b": 0}, {"id": "MB", "hex": "#92ff24", "r": 146, "g": 255, "b": 36}, {"id": "MC", "hex": "#92ff49", "r": 146, "g": 255, "b": 73}, {"id": "MD", "hex": "#92ff6d", "r": 146, "g": 255, "b": 109}, {"id": "ME", "hex": "#92ff92", "r": 146, "g": 255, "b": 146}, {"id": "MF", "hex": "#92ffb6", "r": 146, "g": 255, "b": 182}, {"id": "MG", "hex": "#92ffdb", "r": 146, "g": 255, "b": 219}, {"id": "MH", "hex": "#92ffff", "r": 146, "g": 255, "b": 255}, {"id": "MI", "hex": "#b60000", "r": 182, "g": 0, "b": 0}, {"id": "MJ", "hex": "#b60024", "r": 182, "g": 0, "b": 36}, {"id": "MK", "hex": "#b60049", "r": 182, "g": 0, "b": 73}, {"id": "ML", "hex": "#b6006d", "r": 182, "g": 0, "b": 109}, {"id": "MM", "hex": "#b60092", "r": 182, "g": 0, "b": 146}, {"id": "MN", "hex": "#b600b6", "r": 182, "g": 0, "b": 182}, {"id": "MO", "hex": "#b600db", "r": 182, "g": 0, "b": 219}, {"id": "MP", "hex": "#b600ff", "r": 182, "g": 0, "b": 255}, {"id": "MQ", "hex": "#b62400", "r": 182, "g": 36, "b": 0}, {"id": "MR", "hex": "#b62424", "r": 182, "g": 36, "b": 36}, {"id": "MS", "hex": "#b62449", "r": 182, "g": 36, "b": 73}, {"id": "MT", "hex": "#b6246d", "r": 182, "g": 36, "b": 109}, {"id": "MU", "hex": "#b62492", "r": 182, "g": 36, "b": 146}, {"id": "MV", "hex": "#b624b6", "r": 182, "g": 36, "b": 182}, {"id": "MW", "hex": "#b624db", "r": 182, "g": 36, "b": 219}, {"id": "MX", "hex": "#b624ff", "r": 182, "g": 36, "b": 255}, {"id": "MY", "hex": "#b64900", "r": 182, "g": 73, "b": 0}, {"id": "MZ", "hex": "#b64924", "r": 182, "g": 73, "b": 36}, {"id": "NA", "hex": "#b64949", "r": 182, "g": 73, "b": 73}, {"id": "NB", "hex": "#b6496d", "r": 182, "g": 73, "b": 109}, {"id": "NC", "hex": "#b64992", "r": 182, "g": 73, "b": 146}, {"id": "ND", "hex": "#b649b6", "r": 182, "g": 73, "b": 182}, {"id": "NE", "hex": "#b649db", "r": 182, "g": 73, "b": 219}, {"id": "NF", "hex": "#b649ff", "r": 182, "g": 73, "b": 255}, {"id": "NG", "hex": "#b66d00", "r": 182, "g": 109, "b": 0}, {"id": "NH", "hex": "#b66d24", "r": 182, "g": 109, "b": 36}, {"id": "NI", "hex": "#b66d49", "r": 182, "g": 109, "b": 73}, {"id": "NJ", "hex": "#b66d6d", "r": 182, "g": 109, "b": 109}, {"id": "NK", "hex": "#b66d92", "r": 182, "g": 109, "b": 146}, {"id": "NL", "hex": "#b66db6", "r": 182, "g": 109, "b": 182}, {"id": "NM", "hex": "#b66ddb", "r": 182, "g": 109, "b": 219}, {"id": "NN", "hex": "#b66dff", "r": 182, "g": 109, "b": 255}, {"id": "NO", "hex": "#b69200", "r": 182, "g": 146, "b": 0}, {"id": "NP", "hex": "#b69224", "r": 182, "g": 146, "b": 36}, {"id": "NQ", "hex": "#b69249", "r": 182, "g": 146, "b": 73}, {"id": "NR", "hex": "#b6926d", "r": 182, "g": 146, "b": 109}, {"id": "NS", "hex": "#b69292", "r": 182, "g": 146, "b": 146}, {"id": "NT", "hex": "#b692b6", "r": 182, "g": 146, "b": 182}, {"id": "NU", "hex": "#b692db", "r": 182, "g": 146, "b": 219}, {"id": "NV", "hex": "#b692ff", "r": 182, "g": 146, "b": 255}, {"id": "NW", "hex": "#b6b600", "r": 182, "g": 182, "b": 0}, {"id": "NX", "hex": "#b6b624", "r": 182, "g": 182, "b": 36}, {"id": "NY", "hex": "#b6b649", "r": 182, "g": 182, "b": 73}, {"id": "NZ", "hex": "#b6b66d", "r": 182, "g": 182, "b": 109}, {"id": "OA", "hex": "#b6b692", "r": 182, "g": 182, "b": 146}, {"id": "OB", "hex": "#b6b6b6", "r": 182, "g": 182, "b": 182}, {"id": "OC", "hex": "#b6b6db", "r": 182, "g": 182, "b": 219}, {"id": "OD", "hex": "#b6b6ff", "r": 182, "g": 182, "b": 255}, {"id": "OE", "hex": "#b6db00", "r": 182, "g": 219, "b": 0}, {"id": "OF", "hex": "#b6db24", "r": 182, "g": 219, "b": 36}, {"id": "OG", "hex": "#b6db49", "r": 182, "g": 219, "b": 73}, {"id": "OH", "hex": "#b6db6d", "r": 182, "g": 219, "b": 109}, {"id": "OI", "hex": "#b6db92", "r": 182, "g": 219, "b": 146}, {"id": "OJ", "hex": "#b6dbb6", "r": 182, "g": 219, "b": 182}, {"id": "OK", "hex": "#b6dbdb", "r": 182, "g": 219, "b": 219}, {"id": "OL", "hex": "#b6dbff", "r": 182, "g": 219, "b": 255}, {"id": "OM", "hex": "#b6ff00", "r": 182, "g": 255, "b": 0}, {"id": "ON", "hex": "#b6ff24", "r": 182, "g": 255, "b": 36}, {"id": "OO", "hex": "#b6ff49", "r": 182, "g": 255, "b": 73}, {"id": "OP", "hex": "#b6ff6d", "r": 182, "g": 255, "b": 109}, {"id": "OQ", "hex": "#b6ff92", "r": 182, "g": 255, "b": 146}, {"id": "OR", "hex": "#b6ffb6", "r": 182, "g": 255, "b": 182}, {"id": "OS", "hex": "#b6ffdb", "r": 182, "g": 255, "b": 219}, {"id": "OT", "hex": "#b6ffff", "r": 182, "g": 255, "b": 255}, {"id": "OU", "hex": "#db0000", "r": 219, "g": 0, "b": 0}, {"id": "OV", "hex": "#db0024", "r": 219, "g": 0, "b": 36}, {"id": "OW", "hex": "#db0049", "r": 219, "g": 0, "b": 73}, {"id": "OX", "hex": "#db006d", "r": 219, "g": 0, "b": 109}, {"id": "OY", "hex": "#db0092", "r": 219, "g": 0, "b": 146}, {"id": "OZ", "hex": "#db00b6", "r": 219, "g": 0, "b": 182}, {"id": "PA", "hex": "#db00db", "r": 219, "g": 0, "b": 219}, {"id": "PB", "hex": "#db00ff", "r": 219, "g": 0, "b": 255}, {"id": "PC", "hex": "#db2400", "r": 219, "g": 36, "b": 0}, {"id": "PD", "hex": "#db2424", "r": 219, "g": 36, "b": 36}, {"id": "PE", "hex": "#db2449", "r": 219, "g": 36, "b": 73}, {"id": "PF", "hex": "#db246d", "r": 219, "g": 36, "b": 109}, {"id": "PG", "hex": "#db2492", "r": 219, "g": 36, "b": 146}, {"id": "PH", "hex": "#db24b6", "r": 219, "g": 36, "b": 182}, {"id": "PI", "hex": "#db24db", "r": 219, "g": 36, "b": 219}, {"id": "PJ", "hex": "#db24ff", "r": 219, "g": 36, "b": 255}, {"id": "PK", "hex": "#db4900", "r": 219, "g": 73, "b": 0}, {"id": "PL", "hex": "#db4924", "r": 219, "g": 73, "b": 36}, {"id": "PM", "hex": "#db4949", "r": 219, "g": 73, "b": 73}, {"id": "PN", "hex": "#db496d", "r": 219, "g": 73, "b": 109}, {"id": "PO", "hex": "#db4992", "r": 219, "g": 73, "b": 146}, {"id": "PP", "hex": "#db49b6", "r": 219, "g": 73, "b": 182}, {"id": "PQ", "hex": "#db49db", "r": 219, "g": 73, "b": 219}, {"id": "PR", "hex": "#db49ff", "r": 219, "g": 73, "b": 255}, {"id": "PS", "hex": "#db6d00", "r": 219, "g": 109, "b": 0}, {"id": "PT", "hex": "#db6d24", "r": 219, "g": 109, "b": 36}, {"id": "PU", "hex": "#db6d49", "r": 219, "g": 109, "b": 73}, {"id": "PV", "hex": "#db6d6d", "r": 219, "g": 109, "b": 109}, {"id": "PW", "hex": "#db6d92", "r": 219, "g": 109, "b": 146}, {"id": "PX", "hex": "#db6db6", "r": 219, "g": 109, "b": 182}, {"id": "PY", "hex": "#db6ddb", "r": 219, "g": 109, "b": 219}, {"id": "PZ", "hex": "#db6dff", "r": 219, "g": 109, "b": 255}, {"id": "QA", "hex": "#db9200", "r": 219, "g": 146, "b": 0}, {"id": "QB", "hex": "#db9224", "r": 219, "g": 146, "b": 36}, {"id": "QC", "hex": "#db9249", "r": 219, "g": 146, "b": 73}, {"id": "QD", "hex": "#db926d", "r": 219, "g": 146, "b": 109}, {"id": "QE", "hex": "#db9292", "r": 219, "g": 146, "b": 146}, {"id": "QF", "hex": "#db92b6", "r": 219, "g": 146, "b": 182}, {"id": "QG", "hex": "#db92db", "r": 219, "g": 146, "b": 219}, {"id": "QH", "hex": "#db92ff", "r": 219, "g": 146, "b": 255}, {"id": "QI", "hex": "#dbb600", "r": 219, "g": 182, "b": 0}, {"id": "QJ", "hex": "#dbb624", "r": 219, "g": 182, "b": 36}, {"id": "QK", "hex": "#dbb649", "r": 219, "g": 182, "b": 73}, {"id": "QL", "hex": "#dbb66d", "r": 219, "g": 182, "b": 109}, {"id": "QM", "hex": "#dbb692", "r": 219, "g": 182, "b": 146}, {"id": "QN", "hex": "#dbb6b6", "r": 219, "g": 182, "b": 182}, {"id": "QO", "hex": "#dbb6db", "r": 219, "g": 182, "b": 219}, {"id": "QP", "hex": "#dbb6ff", "r": 219, "g": 182, "b": 255}, {"id": "QQ", "hex": "#dbdb00", "r": 219, "g": 219, "b": 0}, {"id": "QR", "hex": "#dbdb24", "r": 219, "g": 219, "b": 36}, {"id": "QS", "hex": "#dbdb49", "r": 219, "g": 219, "b": 73}, {"id": "QT", "hex": "#dbdb6d", "r": 219, "g": 219, "b": 109}, {"id": "QU", "hex": "#dbdb92", "r": 219, "g": 219, "b": 146}, {"id": "QV", "hex": "#dbdbb6", "r": 219, "g": 219, "b": 182}, {"id": "QW", "hex": "#dbdbdb", "r": 219, "g": 219, "b": 219}, {"id": "QX", "hex": "#dbdbff", "r": 219, "g": 219, "b": 255}, {"id": "QY", "hex": "#dbff00", "r": 219, "g": 255, "b": 0}, {"id": "QZ", "hex": "#dbff24", "r": 219, "g": 255, "b": 36}, {"id": "RA", "hex": "#dbff49", "r": 219, "g": 255, "b": 73}, {"id": "RB", "hex": "#dbff6d", "r": 219, "g": 255, "b": 109}, {"id": "RC", "hex": "#dbff92", "r": 219, "g": 255, "b": 146}, {"id": "RD", "hex": "#dbffb6", "r": 219, "g": 255, "b": 182}, {"id": "RE", "hex": "#dbffdb", "r": 219, "g": 255, "b": 219}, {"id": "RF", "hex": "#dbffff", "r": 219, "g": 255, "b": 255}, {"id": "RG", "hex": "#ff0000", "r": 255, "g": 0, "b": 0}, {"id": "RH", "hex": "#ff0024", "r": 255, "g": 0, "b": 36}, {"id": "RI", "hex": "#ff0049", "r": 255, "g": 0, "b": 73}, {"id": "RJ", "hex": "#ff006d", "r": 255, "g": 0, "b": 109}, {"id": "RK", "hex": "#ff0092", "r": 255, "g": 0, "b": 146}, {"id": "RL", "hex": "#ff00b6", "r": 255, "g": 0, "b": 182}, {"id": "RM", "hex": "#ff00db", "r": 255, "g": 0, "b": 219}, {"id": "RN", "hex": "#ff00ff", "r": 255, "g": 0, "b": 255}, {"id": "RO", "hex": "#ff2400", "r": 255, "g": 36, "b": 0}, {"id": "RP", "hex": "#ff2424", "r": 255, "g": 36, "b": 36}, {"id": "RQ", "hex": "#ff2449", "r": 255, "g": 36, "b": 73}, {"id": "RR", "hex": "#ff246d", "r": 255, "g": 36, "b": 109}, {"id": "RS", "hex": "#ff2492", "r": 255, "g": 36, "b": 146}, {"id": "RT", "hex": "#ff24b6", "r": 255, "g": 36, "b": 182}, {"id": "RU", "hex": "#ff24db", "r": 255, "g": 36, "b": 219}, {"id": "RV", "hex": "#ff24ff", "r": 255, "g": 36, "b": 255}, {"id": "RW", "hex": "#ff4900", "r": 255, "g": 73, "b": 0}, {"id": "RX", "hex": "#ff4924", "r": 255, "g": 73, "b": 36}, {"id": "RY", "hex": "#ff4949", "r": 255, "g": 73, "b": 73}, {"id": "RZ", "hex": "#ff496d", "r": 255, "g": 73, "b": 109}, {"id": "SA", "hex": "#ff4992", "r": 255, "g": 73, "b": 146}, {"id": "SB", "hex": "#ff49b6", "r": 255, "g": 73, "b": 182}, {"id": "SC", "hex": "#ff49db", "r": 255, "g": 73, "b": 219}, {"id": "SD", "hex": "#ff49ff", "r": 255, "g": 73, "b": 255}, {"id": "SE", "hex": "#ff6d00", "r": 255, "g": 109, "b": 0}, {"id": "SF", "hex": "#ff6d24", "r": 255, "g": 109, "b": 36}, {"id": "SG", "hex": "#ff6d49", "r": 255, "g": 109, "b": 73}, {"id": "SH", "hex": "#ff6d6d", "r": 255, "g": 109, "b": 109}, {"id": "SI", "hex": "#ff6d92", "r": 255, "g": 109, "b": 146}, {"id": "SJ", "hex": "#ff6db6", "r": 255, "g": 109, "b": 182}, {"id": "SK", "hex": "#ff6ddb", "r": 255, "g": 109, "b": 219}, {"id": "SL", "hex": "#ff6dff", "r": 255, "g": 109, "b": 255}, {"id": "SM", "hex": "#ff9200", "r": 255, "g": 146, "b": 0}, {"id": "SN", "hex": "#ff9224", "r": 255, "g": 146, "b": 36}, {"id": "SO", "hex": "#ff9249", "r": 255, "g": 146, "b": 73}, {"id": "SP", "hex": "#ff926d", "r": 255, "g": 146, "b": 109}, {"id": "SQ", "hex": "#ff9292", "r": 255, "g": 146, "b": 146}, {"id": "SR", "hex": "#ff92b6", "r": 255, "g": 146, "b": 182}, {"id": "SS", "hex": "#ff92db", "r": 255, "g": 146, "b": 219}, {"id": "ST", "hex": "#ff92ff", "r": 255, "g": 146, "b": 255}, {"id": "SU", "hex": "#ffb600", "r": 255, "g": 182, "b": 0}, {"id": "SV", "hex": "#ffb624", "r": 255, "g": 182, "b": 36}, {"id": "SW", "hex": "#ffb649", "r": 255, "g": 182, "b": 73}, {"id": "SX", "hex": "#ffb66d", "r": 255, "g": 182, "b": 109}, {"id": "SY", "hex": "#ffb692", "r": 255, "g": 182, "b": 146}, {"id": "SZ", "hex": "#ffb6b6", "r": 255, "g": 182, "b": 182}, {"id": "TA", "hex": "#ffb6db", "r": 255, "g": 182, "b": 219}, {"id": "TB", "hex": "#ffb6ff", "r": 255, "g": 182, "b": 255}, {"id": "TC", "hex": "#ffdb00", "r": 255, "g": 219, "b": 0}, {"id": "TD", "hex": "#ffdb24", "r": 255, "g": 219, "b": 36}, {"id": "TE", "hex": "#ffdb49", "r": 255, "g": 219, "b": 73}, {"id": "TF", "hex": "#ffdb6d", "r": 255, "g": 219, "b": 109}, {"id": "TG", "hex": "#ffdb92", "r": 255, "g": 219, "b": 146}, {"id": "TH", "hex": "#ffdbb6", "r": 255, "g": 219, "b": 182}, {"id": "TI", "hex": "#ffdbdb", "r": 255, "g": 219, "b": 219}, {"id": "TJ", "hex": "#ffdbff", "r": 255, "g": 219, "b": 255}, {"id": "TK", "hex": "#ffff00", "r": 255, "g": 255, "b": 0}, {"id": "TL", "hex": "#ffff24", "r": 255, "g": 255, "b": 36}, {"id": "TM", "hex": "#ffff49", "r": 255, "g": 255, "b": 73}, {"id": "TN", "hex": "#ffff6d", "r": 255, "g": 255, "b": 109}, {"id": "TO", "hex": "#ffff92", "r": 255, "g": 255, "b": 146}, {"id": "TP", "hex": "#ffffb6", "r": 255, "g": 255, "b": 182}, {"id": "TQ", "hex": "#ffffdb", "r": 255, "g": 255, "b": 219}, {"id": "TR", "hex": "#ffffff", "r": 255, "g": 255, "b": 255}];
+
+    // Opciones de configuración expandidas con HD y Ultra HD
+    const RESOLUTIONS = [
+      { w: 32, h: 24, label: "32 × 24" },
+      { w: 48, h: 36, label: "48 × 36" },
+      { w: 64, h: 48, label: "64 × 48 (Recomendado)" },
+      { w: 80, h: 60, label: "80 × 60 (Alta Calidad)" },
+      { w: 96, h: 72, label: "96 × 72 (HD)" },
+      { w: 128, h: 96, label: "128 × 96 (Ultra HD)" }
+    ];
+
+    const COLOR_DEPTHS = [16, 32, 64, 96, 256, 512];
+
+    const sliderRes = document.getElementById('sliderRes');
+    const sliderCol = document.getElementById('sliderCol');
+    const sliderFps = document.getElementById('sliderFps');
+
+    const valResLabel = document.getElementById('valResLabel');
+    const valColLabel = document.getElementById('valColLabel');
+    const valFpsLabel = document.getElementById('valFpsLabel');
+    const valFpsMetric = document.getElementById('valFpsMetric');
+
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    function updateConfig() {
+      const curRes = RESOLUTIONS[parseInt(sliderRes.value)];
+      valResLabel.innerHTML = `${curRes.w} &times; ${curRes.h}`;
+      canvas.width = curRes.w;
+      canvas.height = curRes.h;
+
+      const colorsCount = COLOR_DEPTHS[parseInt(sliderCol.value)];
+      valColLabel.textContent = `${colorsCount} ${curLang === 'es' ? 'Colores' : 'Colors'}`;
+
+      const fpsVal = parseInt(sliderFps.value);
+      valFpsLabel.textContent = `${fpsVal} FPS`;
+      valFpsMetric.textContent = `${fpsVal} FPS`;
+    }
+
+    sliderRes.addEventListener('input', updateConfig);
+    sliderCol.addEventListener('input', updateConfig);
+    sliderFps.addEventListener('input', updateConfig);
+    updateConfig();
+
+    function getActivePalette() {
+      const count = COLOR_DEPTHS[parseInt(sliderCol.value)];
+      return FULL_PALETTE.slice(0, count);
+    }
+
+    // Caché de color ultra rápida (elimina más de 1.000 millones de cálculos repetidos)
+    const colorCache = new Map();
+
+    function getNearestColor(r, g, b, activePalette) {
+      // Redondear a múltiplos de 4 reduce el espacio de colores sin perder calidad visual y dispara la velocidad
+      const qr = r & 0xfc;
+      const qg = g & 0xfc;
+      const qb = b & 0xfc;
+      const key = (qr << 16) | (qg << 8) | qb;
+      
+      const cached = colorCache.get(key);
+      if (cached !== undefined) return cached;
+
+      let minDist = Infinity;
+      let chosen = 'A';
+      for (let i = 0; i < activePalette.length; i++) {
+        const p = activePalette[i];
+        const dr = qr - p.r;
+        const dg = qg - p.g;
+        const db = qb - p.b;
+        const dist = dr*dr*0.3 + dg*dg*0.59 + db*db*0.11;
+        if (dist < minDist) {
+          minDist = dist;
+          chosen = p.id;
+        }
+      }
+      colorCache.set(key, chosen);
+      return chosen;
+    }
+
+    const fileInput = document.getElementById('videoInput');
+    const dropArea = document.getElementById('dropArea');
+    const processBtn = document.getElementById('processBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const output = document.getElementById('output');
+    const video = document.getElementById('v');
+    const progressBox = document.getElementById('progressBox');
+    const progressFill = document.getElementById('progressFill');
+    const progressStatus = document.getElementById('progressStatus');
+    const progressPercent = document.getElementById('progressPercent');
+    const valFrames = document.getElementById('valFrames');
+    const valSize = document.getElementById('valSize');
+    const toast = document.getElementById('toast');
+
+    ['dragenter', 'dragover'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.classList.remove('dragover'); }));
+    dropArea.addEventListener('drop', e => {
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) handleFileSelect(fileInput.files[0]);
+    });
+
+    function handleFileSelect(file) {
+      if (!file) return;
+      video.src = URL.createObjectURL(file);
+      video.load();
+      processBtn.disabled = false;
+      copyBtn.style.display = 'none';
+      document.getElementById('dropTitle').textContent = file.name;
+      document.getElementById('dropDesc').textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    processBtn.addEventListener('click', async () => {
+      processBtn.disabled = true;
+      output.value = "";
+      copyBtn.style.display = 'none';
+      progressBox.style.display = 'flex';
+      progressFill.style.width = '0%';
+
+      const curRes = RESOLUTIONS[parseInt(sliderRes.value)];
+      const fps = parseInt(sliderFps.value);
+      const activePalette = getActivePalette();
+      const t = i18n[curLang];
+
+      progressStatus.textContent = t.btnProcessing;
+
+      try { await video.play(); } catch(e){}
+      video.pause();
+
+      const duration = Math.min(video.duration, 35);
+      const totalFrames = Math.max(1, Math.floor(duration * fps));
+      const totalPixels = curRes.w * curRes.h;
+      valFrames.textContent = totalFrames;
+
+      let frames = [];
+
+      function seekVideo(time) {
+        return new Promise(resolve => {
+          let resolved = false;
+          const onSeeked = () => {
+            if (!resolved) {
+              resolved = true;
+              video.removeEventListener('seeked', onSeeked);
+              resolve();
+            }
+          };
+          video.addEventListener('seeked', onSeeked, { once: true });
+          setTimeout(onSeeked, 250); // Timeout salvavidas
+          video.currentTime = Math.min(time, Math.max(0, video.duration - 0.05));
+        });
+      }
+
+      for (let i = 0; i < totalFrames; i++) {
+        await seekVideo(i / fps);
+
+        ctx.drawImage(video, 0, 0, curRes.w, curRes.h);
+        const img = ctx.getImageData(0, 0, curRes.w, curRes.h).data;
+
+        let frameChars = [];
+        for (let p = 0; p < img.length; p += 4) {
+          frameChars.push(getNearestColor(img[p], img[p+1], img[p+2], activePalette));
+        }
+        frames.push(frameChars);
+
+        const pct = Math.round(((i + 1) / totalFrames) * 100);
+        progressFill.style.width = pct + '%';
+        progressPercent.textContent = pct + '%';
+        progressStatus.textContent = t.statusSeek.replace('{cur}', i + 1).replace('{tot}', totalFrames);
+      }
+
+      // Limpiar caché para este proceso
+      colorCache.clear();
+
+      progressStatus.textContent = curLang === 'es' ? "Comprimiendo flujo Delta..." : "Compressing Delta stream...";
+      progressPercent.textContent = "99%";
+      await new Promise(r => setTimeout(r, 40));
+
+      let deltaStream = "";
+      let prevFrame = new Array(totalPixels).fill("");
+
+      // Compresión segmentada para no congelar la pestaña
+      for (let f = 0; f < frames.length; f++) {
+        const curFrame = frames[f];
+        let skip = 0;
+        let frameStr = "";
+
+        for (let p = 0; p < totalPixels; p++) {
+          if (curFrame[p] !== prevFrame[p]) {
+            frameStr += skip + curFrame[p];
+            skip = 0;
+            prevFrame[p] = curFrame[p];
+          } else {
+            skip++;
+          }
+        }
+        deltaStream += frameStr + "#";
+
+        // Ceder el hilo de la UI cada 30 fotogramas
+        if (f % 30 === 0) {
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+
+      const finalPayload = `${totalFrames}|${curRes.w}|${curRes.h}|${fps}|${deltaStream}`;
+      
+      // OPTIMIZACIÓN CLAVE DE MEMORIA Y DOM:
+      // Guardar el texto completo en memoria global para el portapapeles
+      window.generatedPayload = finalPayload;
+
+      // Si el texto es gigantesco, no forzar al navegador a renderizar millones de caracteres en la caja de texto
+      if (finalPayload.length > 8000) {
+        output.value = finalPayload.slice(0, 1500) + "\n\n... [" + 
+          (curLang === 'es' 
+            ? `CÓDIGO COMPLETO LISTO (${(finalPayload.length / 1024).toFixed(1)} KB en memoria). Haz clic en 'Copiar Código' abajo.` 
+            : `FULL PAYLOAD READY (${(finalPayload.length / 1024).toFixed(1)} KB in memory). Click 'Copy Code' below.`);
+      } else {
+        output.value = finalPayload;
+      }
+
+      valSize.textContent = (finalPayload.length / 1024).toFixed(1) + " KB";
+      progressFill.style.width = '100%';
+      progressPercent.textContent = '100%';
+      progressStatus.textContent = t.statusComplete;
+      copyBtn.style.display = 'inline-flex';
+      processBtn.disabled = false;
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const textToCopy = window.generatedPayload || output.value;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+      });
+    });
+  </script>
+</body>
+</html>
