@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scratch Video Converter • 64 Colors & Delta Compression</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(16, 24, 39, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(99, 102, 241, 0.4);
+      --accent-primary: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --accent-cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --surface-inner: rgba(15, 23, 42, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg) 60%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px 80px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Luces de ambiente de fondo */
+    body::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 450px;
+      background: radial-gradient(ellipse, rgba(99, 102, 241, 0.2) 0%, rgba(6, 182, 212, 0.08) 50%, transparent 80%);
+      filter: blur(80px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Barra superior con selector de idioma y enlaces */
+    .top-bar {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-size: 12px;
+      font-weight: 600;
+      color: #a5b4fc;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-tag span.dot {
+      width: 6px;
+      height: 6px;
+      background: #818cf8;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #818cf8;
+    }
+
+    .lang-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 9999px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Cabecera del proyecto */
+    header {
+      text-align: center;
+      max-width: 640px;
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* Tarjeta principal estilo Glassmorphism */
+    .container {
+      width: 100%;
+      max-width: 860px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: border-color 0.3s ease;
+    }
+
+    /* Zona de arrastrar y soltar (Dropzone) */
+    .dropzone {
+      position: relative;
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.4);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.08);
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    .dropzone input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .dropzone-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 14px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #818cf8;
+      transition: transform 0.2s ease;
+    }
+
+    .dropzone:hover .dropzone-icon {
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    .dropzone-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .dropzone-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* Grilla de vista previa y especificaciones */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 740px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+      .container {
+        padding: 24px;
+      }
+    }
+
+    .preview-card {
+      background: var(--surface-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .preview-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .preview-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .res-tag {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.15);
+      color: #22d3ee;
+      font-weight: 600;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      width: 240px;
+      height: 180px;
+      display: block;
+    }
+
+    /* Métricas del video */
+    .metrics-list {
+      width: 100%;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .metric-name {
+      color: var(--text-dim);
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    /* Panel de control derecho */
+    .controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    button.btn-primary {
+      flex: 1;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #4338ca 100%);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 22px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      transition: all 0.2s ease;
+    }
+
+    button.btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+      filter: brightness(1.1);
+    }
+
+    button.btn-primary:disabled {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Barra de progreso interactiva */
+    .progress-section {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--surface-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #06b6d4);
+      border-radius: 9999px;
+      transition: width 0.15s ease;
+    }
+
+    /* Área de salida del código */
+    .output-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .output-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-copy {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-copy:hover {
+      background: #10b981;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+
+    textarea#output {
+      width: 100%;
+      height: 140px;
+      background: rgba(10, 15, 29, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 14px;
+      color: #cbd5e1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea#output:focus {
+      border-color: var(--accent-primary);
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(16, 185, 129, 0.95);
+      backdrop-filter: blur(12px);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 99;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 36px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    footer a:hover {
+      color: var(--accent-cyan);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="badge-tag">
+      <span class="dot"></span>
+      <span id="badgeText">Delta Engine v2.0 • 64 Colors</span>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn" id="btnEn" onclick="setLanguage('en')">EN</button>
+      <button class="lang-btn" id="btnEs" onclick="setLanguage('es')">ES</button>
+    </div>
+  </div>
+
+  <header>
+    <h1 id="heroTitle">Scratch Video Converter</h1>
+    <p class="subtitle" id="heroDesc">Transform MP4 clips into ultra-compact data streams for instant real-time rendering in Scratch using the Pen extension.</p>
+  </header>
+
+  <main class="container">
+    <!-- Drag & Drop Zone -->
+    <div class="dropzone" id="dropArea">
+      <input type="file" id="videoInput" accept="video/mp4,video/webm,video/*">
+      <div class="dropzone-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+      </div>
+      <div class="dropzone-title" id="dropTitle">Choose a video or drag it here</div>
+      <div class="dropzone-desc" id="dropDesc">Supports MP4, WebM (Recommended: 5 to 25 seconds)</div>
+    </div>
+
+    <!-- Workspace Grid -->
+    <div class="workspace-grid">
+      <!-- Preview Column -->
+      <div class="preview-card">
+        <div class="preview-header">
+          <span class="preview-title" id="prevTitle">Canvas Preview</span>
+          <span class="res-tag">64 &times; 48</span>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="c" width="64" height="48"></canvas>
+        </div>
+        <div class="metrics-list">
+          <div class="metric-row">
+            <span class="metric-name" id="lblFrames">Total Frames</span>
+            <span class="metric-value" id="valFrames">0</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name" id="lblFps">Framerate</span>
+            <span class="metric-value">10 FPS</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name" id="lblLength">Payload Size</span>
+            <span class="metric-value" id="valSize">0 KB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Output Column -->
+      <div class="controls-panel">
+        <div class="action-group">
+          <button class="btn-primary" id="processBtn" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span id="btnProcessText">Process Video with Delta</span>
+          </button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section" id="progressBox">
+          <div class="progress-labels">
+            <span id="progressStatus" style="color: #38bdf8;">Extracting frames...</span>
+            <span id="progressPercent" style="color: #cbd5e1; font-family: monospace;">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <!-- Output Code Area -->
+        <div class="output-wrapper">
+          <div class="output-header">
+            <span class="output-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              <span id="outputLabelText">Scratch Payload Output</span>
+            </span>
+            <button class="btn-copy" id="copyBtn" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="copyBtnText">Copy Code</span>
+            </button>
+          </div>
+          <textarea id="output" placeholder="The compressed payload will appear here. Paste it directly into your Scratch project prompt..." readonly></textarea>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <video id="v" style="display:none;" muted playsinline></video>
+
+  <div class="toast" id="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastMsg">Code copied to clipboard!</span>
+  </div>
+
+  <footer>
+    <p id="footerText">Compatible with Scratch 3.0 Pen Extension • Built for 64&times;48 Matrix Playback</p>
+  </footer>
+
+  <script>
+    // --- DICCIONARIO DE TRADUCCIÓN (EN / ES) ---
+    const i18n = {
+      en: {
+        badge: "Delta Engine v2.0 • 64 Colors",
+        heroTitle: "Scratch Video Converter",
+        heroDesc: "Transform MP4 clips into ultra-compact data streams for instant real-time rendering in Scratch using the Pen extension.",
+        dropTitle: "Choose a video or drag it here",
+        dropDesc: "Supports MP4, WebM (Recommended: 5 to 25 seconds)",
+        prevTitle: "Canvas Preview",
+        lblFrames: "Total Frames",
+        lblFps: "Framerate",
+        lblLength: "Payload Size",
+        btnProcess: "Process Video with Delta",
+        btnProcessing: "Processing frames...",
+        outputLabel: "Scratch Payload Output",
+        copyBtn: "Copy Code",
+        toastCopied: "Code copied to clipboard! Paste it into Scratch.",
+        footer: "Compatible with Scratch 3.0 Pen Extension • Built for 64×48 Matrix Playback",
+        statusReady: "Video loaded successfully. Ready to process.",
+        statusSeek: "Processing frame {cur} of {tot}...",
+        statusComplete: "Complete! Ready to copy to Scratch."
+      },
+      es: {
+        badge: "Motor Delta v2.0 • 64 Colores",
+        heroTitle: "Conversor de Video para Scratch",
+        heroDesc: "Convierte clips MP4 en flujos de datos ultra comprimidos para reproducir video en tiempo real en Scratch con la extensión Lápiz.",
+        dropTitle: "Selecciona un video o arrástralo aquí",
+        dropDesc: "Compatible con MP4, WebM (Recomendado: 5 a 25 segundos)",
+        prevTitle: "Vista Previa",
+        lblFrames: "Cuadros Totales",
+        lblFps: "Velocidad",
+        lblLength: "Tamaño Código",
+        btnProcess: "Procesar Video con Delta",
+        btnProcessing: "Procesando fotogramas...",
+        outputLabel: "Código para Scratch",
+        copyBtn: "Copiar Código",
+        toastCopied: "¡Código copiado al portapapeles! Pégalo en Scratch.",
+        footer: "Compatible con Extensión Lápiz de Scratch 3.0 • Diseñado para matriz 64×48",
+        statusReady: "Video cargado con éxito. Listo para procesar.",
+        statusSeek: "Procesando cuadro {cur} de {tot}...",
+        statusComplete: "¡Completado! Listo para copiar a Scratch."
+      }
+    };
+
+    let curLang = 'es';
+
+    function setLanguage(lang) {
+      curLang = lang;
+      document.documentElement.lang = lang;
+      const t = i18n[lang];
+
+      document.getElementById('badgeText').textContent = t.badge;
+      document.getElementById('heroTitle').textContent = t.heroTitle;
+      document.getElementById('heroDesc').textContent = t.heroDesc;
+      document.getElementById('dropTitle').textContent = t.dropTitle;
+      document.getElementById('dropDesc').textContent = t.dropDesc;
+      document.getElementById('prevTitle').textContent = t.prevTitle;
+      document.getElementById('lblFrames').textContent = t.lblFrames;
+      document.getElementById('lblFps').textContent = t.lblFps;
+      document.getElementById('lblLength').textContent = t.lblLength;
+      document.getElementById('btnProcessText').textContent = t.btnProcess;
+      document.getElementById('outputLabelText').textContent = t.outputLabel;
+      document.getElementById('copyBtnText').textContent = t.copyBtn;
+      document.getElementById('toastMsg').textContent = t.toastCopied;
+      document.getElementById('footerText').textContent = t.footer;
+
+      document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+      document.getElementById('btnEs').classList.toggle('active', lang === 'es');
+    }
+
+    // Detección automática del idioma del navegador
+    const userBrowserLang = (navigator.language || navigator.userLanguage || 'es').toLowerCase();
+    if (userBrowserLang.startsWith('es')) {
+      setLanguage('es');
+    } else {
+      setLanguage('en');
+    }
+
+    // --- CONFIGURACIÓN MATRICIAL Y PALETA 64 COLORES SEGURA ---
+    const WIDTH = 64;
+    const HEIGHT = 48;
+    const FPS = 10;
+
+    const PALETTE = [
+      { id: 'A', hex: '#000000', r: 0, g: 0, b: 0 },
+      { id: 'B', hex: '#ffffff', r: 255, g: 255, b: 255 },
+      { id: 'C', hex: '#555555', r: 85, g: 85, b: 85 },
+      { id: 'D', hex: '#aaaaaa', r: 170, g: 170, b: 170 },
+      { id: 'E', hex: '#e60000', r: 230, g: 0, b: 0 },
+      { id: 'F', hex: '#00aa00', r: 0, g: 170, b: 0 },
+      { id: 'G', hex: '#0000cc', r: 0, g: 0, b: 204 },
+      { id: 'H', hex: '#ffd700', r: 255, g: 215, b: 0 },
+      { id: 'I', hex: '#ffa500', r: 255, g: 165, b: 0 },
+      { id: 'J', hex: '#8b4513', r: 139, g: 69, b: 19 },
+      { id: 'K', hex: '#ff69b4', r: 255, g: 105, b: 180 },
+      { id: 'L', hex: '#00ffff', r: 0, g: 255, b: 255 },
+      { id: 'M', hex: '#800080', r: 128, g: 0, b: 128 },
+      { id: 'N', hex: '#32cd32', r: 50, g: 205, b: 50 },
+      { id: 'O', hex: '#808000', r: 128, g: 128, b: 0 },
+      { id: 'P', hex: '#000055', r: 0, g: 0, b: 85 },
+      { id: 'Q', hex: '#4a004a', r: 74, g: 0, b: 74 },
+      { id: 'R', hex: '#5c0029', r: 92, g: 0, b: 41 },
+      { id: 'S', hex: '#a020f0', r: 160, g: 32, b: 240 },
+      { id: 'T', hex: '#707070', r: 112, g: 112, b: 112 },
+      { id: 'U', hex: '#2b2b2b', r: 43, g: 43, b: 43 },
+      { id: 'V', hex: '#ffcc99', r: 255, g: 204, b: 153 },
+      { id: 'W', hex: '#b22222', r: 178, g: 34, b: 34 },
+      { id: 'X', hex: '#191970', r: 25, g: 25, b: 112 },
+      { id: 'Y', hex: '#fff275', r: 255, g: 242, b: 117 },
+      { id: 'Z', hex: '#435200', r: 67, g: 82, b: 0 },
+      { id: '!', hex: '#4682b4', r: 70, g: 130, b: 180 },
+      { id: '$', hex: '#b19cd9', r: 177, g: 156, b: 217 },
+      { id: '%', hex: '#008b8b', r: 0, g: 139, b: 139 },
+      { id: '&', hex: '#c71585', r: 199, g: 21, b: 133 },
+      { id: '(', hex: '#98ff98', r: 152, g: 255, b: 152 },
+      { id: ')', hex: '#b8860b', r: 184, g: 134, b: 11 },
+      { id: '*', hex: '#1a1a1a', r: 26, g: 26, b: 26 },
+      { id: '+', hex: '#d3d3d3', r: 211, g: 211, b: 211 },
+      { id: ',', hex: '#800000', r: 128, g: 0, b: 0 },
+      { id: '-', hex: '#ff4500', r: 255, g: 69, b: 0 },
+      { id: '.', hex: '#ff8c00', r: 255, g: 140, b: 0 },
+      { id: '/', hex: '#ffe4b5', r: 255, g: 228, b: 181 },
+      { id: ':', hex: '#ffff99', r: 255, g: 255, b: 153 },
+      { id: ';', hex: '#adff2f', r: 173, g: 255, b: 47 },
+      { id: '<', hex: '#006400', r: 0, g: 100, b: 0 },
+      { id: '=', hex: '#2e8b57', r: 46, g: 139, b: 87 },
+      { id: '>', hex: '#20b2aa', r: 32, g: 178, b: 170 },
+      { id: '?', hex: '#5f9ea0', r: 95, g: 158, b: 160 },
+      { id: '@', hex: '#87ceeb', r: 135, g: 206, b: 235 },
+      { id: '[', hex: '#4169e1', r: 65, g: 105, b: 225 },
+      { id: ']', hex: '#000080', r: 0, g: 0, b: 128 },
+      { id: '^', hex: '#483d8b', r: 72, g: 61, b: 139 },
+      { id: '_', hex: '#4b0082', r: 75, g: 0, b: 130 },
+      { id: '{', hex: '#9400d3', r: 148, g: 0, b: 211 },
+      { id: '|', hex: '#ba55d3', r: 186, g: 85, b: 211 },
+      { id: '}', hex: '#dda0dd', r: 221, g: 160, b: 221 },
+      { id: '~', hex: '#ff1493', r: 255, g: 20, b: 147 },
+      { id: '¡', hex: '#ffb6c1', r: 255, g: 182, b: 193 },
+      { id: '¿', hex: '#d2691e', r: 210, g: 105, b: 30 },
+      { id: 'ñ', hex: '#f4a460', r: 244, g: 164, b: 96 },
+      { id: 'á', hex: '#deb887', r: 222, g: 184, b: 135 },
+      { id: 'é', hex: '#2f4f4f', r: 47, g: 79, b: 79 },
+      { id: 'í', hex: '#778899', r: 119, g: 136, b: 153 },
+      { id: 'ó', hex: '#e0ffff', r: 224, g: 255, b: 255 },
+      { id: 'ú', hex: '#ffe4e1', r: 255, g: 228, b: 225 },
+      { id: 'ü', hex: '#2e0854', r: 46, g: 8, b: 84 },
+      { id: '°', hex: '#663399', r: 102, g: 51, b: 153 },
+      { id: '¬', hex: '#3cb371', r: 60, g: 179, b: 113 }
+    ];
+
+    function getNearestColor(r, g, b) {
+      let minDist = Infinity;
+      let chosen = 'A';
+      for (let i = 0; i < PALETTE.length; i++) {
+        const p = PALETTE[i];
+        const dr = r - p.r;
+        const dg = g - p.g;
+        const db = b - p.b;
+        const dist = dr*dr*0.3 + dg*dg*0.59 + db*db*0.11;
+        if (dist < minDist) {
+          minDist = dist;
+          chosen = p.id;
+        }
+      }
+      return chosen;
+    }
+
+    // --- ELEMENTOS DEL DOM ---
+    const fileInput = document.getElementById('videoInput');
+    const dropArea = document.getElementById('dropArea');
+    const processBtn = document.getElementById('processBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const output = document.getElementById('output');
+    const video = document.getElementById('v');
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const progressBox = document.getElementById('progressBox');
+    const progressFill = document.getElementById('progressFill');
+    const progressStatus = document.getElementById('progressStatus');
+    const progressPercent = document.getElementById('progressPercent');
+
+    const valFrames = document.getElementById('valFrames');
+    const valSize = document.getElementById('valSize');
+    const toast = document.getElementById('toast');
+
+    // Drag and Drop effects
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+      }, false);
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length) {
+        fileInput.files = files;
+        handleFileSelect(files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        handleFileSelect(fileInput.files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      if (!file) return;
+      video.src = URL.createObjectURL(file);
+      video.load();
+      processBtn.disabled = false;
+      copyBtn.style.display = 'none';
+      document.getElementById('dropTitle').textContent = file.name;
+      document.getElementById('dropDesc').textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    // Procesamiento con Delta Encoding y barra interactiva
+    processBtn.addEventListener('click', async () => {
+      processBtn.disabled = true;
+      output.value = "";
+      copyBtn.style.display = 'none';
+      progressBox.style.display = 'flex';
+      progressFill.style.width = '0%';
+
+      const t = i18n[curLang];
+      progressStatus.textContent = t.btnProcessing;
+      progressPercent.textContent = '0%';
+
+      try { await video.play(); } catch(e){}
+      video.pause();
+
+      const duration = Math.min(video.duration, 35);
+      const totalFrames = Math.max(1, Math.floor(duration * FPS));
+      const totalPixels = WIDTH * HEIGHT;
+      valFrames.textContent = totalFrames;
+
+      let frames = [];
+
+      for (let i = 0; i < totalFrames; i++) {
+        video.currentTime = i / FPS;
+        await new Promise(r => video.onseeked = r);
+
+        ctx.drawImage(video, 0, 0, WIDTH, HEIGHT);
+        const img = ctx.getImageData(0, 0, WIDTH, HEIGHT).data;
+
+        let frameChars = [];
+        for (let p = 0; p < img.length; p += 4) {
+          frameChars.push(getNearestColor(img[p], img[p+1], img[p+2]));
+        }
+        frames.push(frameChars);
+
+        const pct = Math.round(((i + 1) / totalFrames) * 100);
+        progressFill.style.width = pct + '%';
+        progressPercent.textContent = pct + '%';
+        progressStatus.textContent = t.statusSeek.replace('{cur}', i + 1).replace('{tot}', totalFrames);
+      }
+
+      // Delta Compression
+      let deltaStream = "";
+      let prevFrame = new Array(totalPixels).fill("");
+
+      for (let f = 0; f < frames.length; f++) {
+        const curFrame = frames[f];
+        let skip = 0;
+        let frameStr = "";
+
+        for (let p = 0; p < totalPixels; p++) {
+          if (curFrame[p] !== prevFrame[p]) {
+            frameStr += skip + curFrame[p];
+            skip = 0;
+            prevFrame[p] = curFrame[p];
+          } else {
+            skip++;
+          }
+        }
+        deltaStream += frameStr + "#";
+      }
+
+      const finalPayload = `${totalFrames}|${WIDTH}|${HEIGHT}|${deltaStream}`;
+      output.value = finalPayload;
+
+      const sizeKB = (finalPayload.length / 1024).toFixed(1);
+      valSize.textContent = sizeKB + " KB";
+
+      progressStatus.textContent = t.statusComplete;
+      copyBtn.style.display = 'inline-flex';
+      processBtn.disabled = false;
+    });
+
+    copyBtn.addEventListener('click', () => {
+      output.select();
+      navigator.clipboard.writeText(output.value).then(() => {
+        showToast();
+      });
+    });
+
+    function showToast() {
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
